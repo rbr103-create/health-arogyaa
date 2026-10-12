@@ -1,0 +1,6 @@
+{
+  "name": "HealthArogyaa - Weight Loss & Nutrition System",
+  "description": "Know your food. Choose your meal. Build your day. Science-backed Indian nutrition app with calorie targets, meal recommendations, food scanner, and admin panel with edit rights.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
