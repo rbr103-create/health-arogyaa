@@ -1,5 +1,5 @@
 // HealthArogyaa Service Worker for PWA & offline support
-const CACHE_NAME = 'healtharogyaa-v4';
+const CACHE_NAME = 'healtharogyaa-v5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
