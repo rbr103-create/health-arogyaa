@@ -4,8 +4,39 @@ import { HealthArogyaaLogo } from './HealthArogyaaLogo';
 
 export const InstallPwaBanner: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(() => {
+    try {
+      if (typeof window === 'undefined') return false;
+      return (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.matchMedia('(display-mode: fullscreen)').matches ||
+        window.matchMedia('(display-mode: minimal-ui)').matches ||
+        (window.navigator as any).standalone === true ||
+        document.referrer.includes('android-app://') ||
+        window.location.search.includes('source=pwa') ||
+        window.location.search.includes('source=') ||
+        window.location.search.includes('standalone=true') ||
+        window.location.search.includes('installed=true') ||
+        localStorage.getItem('healtharogyaa_is_installed') === 'true'
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  const [isDismissed, setIsDismissed] = useState(() => {
+    try {
+      if (typeof window === 'undefined') return false;
+      return (
+        localStorage.getItem('healtharogyaa_is_installed') === 'true' ||
+        localStorage.getItem('healtharogyaa_install_dismissed') === 'true' ||
+        sessionStorage.getItem('healtharogyaa_install_dismissed') === 'true'
+      );
+    } catch {
+      return false;
+    }
+  });
+
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);

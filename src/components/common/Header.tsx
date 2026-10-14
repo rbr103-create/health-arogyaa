@@ -18,7 +18,9 @@ import {
   ArrowLeftRight,
   CreditCard,
   Lock,
+  Download,
 } from 'lucide-react';
+import { downloadSourceZip } from '../../utils/downloadZip';
 
 interface HeaderProps {
   activeTab: string;
@@ -264,6 +266,20 @@ export const Header: React.FC<HeaderProps> = ({
           ) : (
             /* CLIENT ACTIONS */
             <>
+              {/* Direct Source Code Download Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  downloadSourceZip();
+                }}
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-600 rounded-xl text-xs font-semibold transition-all shadow-2xs hover:text-white cursor-pointer"
+                title="Download updated Project Source Code (.ZIP)"
+              >
+                <Download className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden sm:inline">ZIP Code</span>
+                <span className="sm:hidden">ZIP</span>
+              </button>
+
               {/* Premium Plan Button */}
               <button
                 onClick={onOpenPremiumModal}
@@ -301,9 +317,11 @@ export const Header: React.FC<HeaderProps> = ({
                 title={`Active profile: ${activeUser.name} (Click to edit or switch profile)`}
               >
                 <div className="w-6 h-6 rounded-full bg-emerald-700 text-emerald-100 flex items-center justify-center font-bold text-[11px] shrink-0">
-                  {activeUser.name.charAt(0)}
+                  {activeUser.id === 'client-user' ? '👤' : activeUser.name.charAt(0).toUpperCase()}
                 </div>
-                <span className="hidden md:inline max-w-[80px] truncate">{activeUser.name}</span>
+                <span className="hidden md:inline max-w-[80px] truncate">
+                  {activeUser.id === 'client-user' ? 'Setup Profile' : activeUser.name}
+                </span>
               </button>
             </>
           )}

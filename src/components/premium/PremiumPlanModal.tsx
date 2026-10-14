@@ -418,18 +418,6 @@ export const PremiumPlanModal: React.FC<PremiumPlanModalProps> = ({
                 <span className="text-xs text-stone-500">
                   {isPremium ? 'Premium is active on your account.' : `Selected: ₹${selectedBundle.price} for ${selectedBundle.months} month(s)`}
                 </span>
-                {onOpenAdminSettings && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      onOpenAdminSettings();
-                    }}
-                    className="text-[11px] text-amber-700 hover:text-amber-900 underline font-semibold cursor-pointer"
-                  >
-                    🛡️ Admin UPI Setup
-                  </button>
-                )}
               </div>
 
               {isPremium ? (
@@ -523,21 +511,6 @@ export const PremiumPlanModal: React.FC<PremiumPlanModalProps> = ({
                 >
                   <span>⚡ Tap to Pay ₹{selectedBundle.price} in UPI App (Google Pay / PhonePe)</span>
                 </a>
-
-                {/* Admin Quick Configure Link */}
-                {onOpenAdminSettings && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      onOpenAdminSettings();
-                    }}
-                    className="text-[11px] text-amber-700 hover:text-amber-900 underline flex items-center justify-center gap-1 mx-auto cursor-pointer font-semibold pt-1"
-                    title="Founder / Dietician: Change your clinic UPI ID or QR code in Admin Console"
-                  >
-                    <span>🛡️ Clinic Admin: Setup / Change UPI ID &amp; QR Code (PIN: 1030)</span>
-                  </button>
-                )}
               </div>
 
               {/* Automatic Status Listener Card */}

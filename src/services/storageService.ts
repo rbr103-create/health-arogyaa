@@ -76,17 +76,66 @@ export function resetFoodsToDefault(): void {
   localStorage.setItem(FOODS_KEY, JSON.stringify(INITIAL_FOOD_DATABASE));
 }
 
+// Default blank profile for a brand-new client downloading the app
+export const DEFAULT_NEW_CLIENT: UserProfile = {
+  id: 'client-user',
+  name: 'New Member',
+  age: 30,
+  sex: 'Male',
+  heightCm: 170,
+  weightKg: 70,
+  startingWeightKg: 70,
+  targetWeightKg: 65,
+  activityLevel: 'sedentary',
+  goal: 'weight_loss',
+  dietPreference: 'Veg',
+  cuisinePreference: 'Pan-Indian',
+  likesRoti: true,
+  likesRice: true,
+  dislikes: [],
+  allergies: [],
+  dailyCalories: 1800,
+  proteinTargetGrams: 75,
+  carbsTargetGrams: 225,
+  fatTargetGrams: 50,
+  fibreTargetGrams: 30,
+  planLevel: 'free',
+  freeScansUsed: 0,
+  monthlyReviewTokensRemaining: 1,
+};
+
+// Sample client user IDs reserved exclusively for dietician admin roster
+export const SAMPLE_CLIENT_IDS = new Set(['user-a', 'user-b', 'user-c']);
+
 // User Profiles
 export function getAllUsers(): UserProfile[] {
   try {
     const raw = localStorage.getItem(USERS_KEY);
     if (!raw) {
-      localStorage.setItem(USERS_KEY, JSON.stringify(PRESET_USERS));
-      return PRESET_USERS;
+      // New download: start with a fresh client profile, NOT pre-filled demo users
+      return [DEFAULT_NEW_CLIENT];
     }
     const parsed: UserProfile[] = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return [DEFAULT_NEW_CLIENT];
+    }
+
+    // Filter out legacy sample preset profiles (Rajesh Sharma, etc.) from patient client accounts
+    const clientUsers = parsed.filter(
+      u => !SAMPLE_CLIENT_IDS.has(u.id) && u.name !== 'Rajesh Sharma'
+    );
+
+    if (clientUsers.length === 0) {
+      localStorage.setItem(USERS_KEY, JSON.stringify([DEFAULT_NEW_CLIENT]));
+      const currentActiveId = localStorage.getItem(ACTIVE_USER_ID_KEY);
+      if (SAMPLE_CLIENT_IDS.has(currentActiveId || '') || currentActiveId === 'user-a') {
+        localStorage.removeItem(ACTIVE_USER_ID_KEY);
+      }
+      return [DEFAULT_NEW_CLIENT];
+    }
+
     let changed = false;
-    const sanitized = parsed.map(u => {
+    const sanitized = clientUsers.map(u => {
       if (
         u.lastDieticianFeedback &&
         (!u.lastDieticianFeedback.dieticianName ||
@@ -104,13 +153,18 @@ export function getAllUsers(): UserProfile[] {
       }
       return u;
     });
-    if (changed) {
+
+    if (changed || clientUsers.length !== parsed.length) {
       localStorage.setItem(USERS_KEY, JSON.stringify(sanitized));
     }
     return sanitized;
   } catch {
-    return PRESET_USERS;
+    return [DEFAULT_NEW_CLIENT];
   }
+}
+
+export function getDieticianSampleClients(): UserProfile[] {
+  return PRESET_USERS;
 }
 
 export function saveUsers(users: UserProfile[]): void {
@@ -119,9 +173,12 @@ export function saveUsers(users: UserProfile[]): void {
 
 export function getActiveUser(): UserProfile {
   const users = getAllUsers();
-  const activeId = localStorage.getItem(ACTIVE_USER_ID_KEY) || 'user-a';
-  const found = users.find(u => u.id === activeId);
-  return found || users[0] || PRESET_USERS[0];
+  const activeId = localStorage.getItem(ACTIVE_USER_ID_KEY);
+  if (activeId && !SAMPLE_CLIENT_IDS.has(activeId)) {
+    const found = users.find(u => u.id === activeId);
+    if (found && found.name !== 'Rajesh Sharma') return found;
+  }
+  return users[0] || DEFAULT_NEW_CLIENT;
 }
 
 export function setActiveUserId(id: string): void {
@@ -137,6 +194,24 @@ export function updateUserProfile(updated: UserProfile): void {
     users.push(updated);
   }
   saveUsers(users);
+}
+
+export function deleteUserProfile(id: string): void {
+  const users = getAllUsers().filter(u => u.id !== id);
+  if (users.length === 0) {
+    users.push(DEFAULT_NEW_CLIENT);
+  }
+  saveUsers(users);
+  const currentActiveId = localStorage.getItem(ACTIVE_USER_ID_KEY);
+  if (currentActiveId === id) {
+    setActiveUserId(users[0].id);
+  }
+}
+
+export function resetToBrandNewTester(): void {
+  localStorage.setItem(USERS_KEY, JSON.stringify([DEFAULT_NEW_CLIENT]));
+  localStorage.removeItem(ACTIVE_USER_ID_KEY);
+  localStorage.removeItem('healtharogyaa_onboarding_completed_v1');
 }
 
 // Daily Logs
@@ -199,19 +274,10 @@ export function getLast15DaysHistory(user: UserProfile): DayCalorieSummary[] {
     let log = allLogs[dateStr];
 
     if (!log) {
-      if (isToday) {
-        log = {
-          date: dateStr,
-          breakfast: [],
-          preLunch: [],
-          lunch: [],
-          dinner: [],
-          snacks: [],
-          waterIntakeLiters: 1.5,
-        };
-      } else {
-        // Generate realistic historical Indian meal log for user calibration
-        const varianceFactor = 0.92 + ((i * 3) % 15) / 100; // 92% to 106%
+      const isPresetDemo = user.id === 'user-a' || user.id === 'user-b' || user.id === 'user-c';
+      if (!isToday && isPresetDemo) {
+        // Only generate demo history for preset sample profiles in admin view
+        const varianceFactor = 0.92 + ((i * 3) % 15) / 100;
         const dayKcal = Math.round(user.dailyCalories * varianceFactor);
         const bfKcal = Math.round(dayKcal * 0.25);
         const plKcal = 65;
@@ -323,7 +389,17 @@ export function getLast15DaysHistory(user: UserProfile): DayCalorieSummary[] {
           ],
           waterIntakeLiters: 2.25,
         };
-        allLogs[dateStr] = log;
+      } else {
+        // Clean blank log for new client
+        log = {
+          date: dateStr,
+          breakfast: [],
+          preLunch: [],
+          lunch: [],
+          dinner: [],
+          snacks: [],
+          waterIntakeLiters: isToday ? 1.5 : 0,
+        };
       }
     }
 
@@ -426,9 +502,9 @@ export function getWeightRecords(userId: string): WeightRecord[] {
       const active = getActiveUser();
       const initial: WeightRecord[] = [
         {
-          id: 'w-init',
-          date: new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0],
-          weightKg: active.startingWeightKg,
+          id: `w-init-${userId}`,
+          date: new Date().toISOString().split('T')[0],
+          weightKg: active.startingWeightKg || active.weightKg,
           notes: 'Starting journey weight'
         },
       ];

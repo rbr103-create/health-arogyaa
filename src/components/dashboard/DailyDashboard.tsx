@@ -33,6 +33,8 @@ import {
   MessageSquare,
   Gift,
   Loader2,
+  User,
+  UserPlus,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -275,6 +277,31 @@ export const DailyDashboard: React.FC<DailyDashboardProps> = ({
                 <span className="font-bold text-emerald-400 tabular-nums">{targetCalories} kcal</span> for healthy, sustainable fat loss.
               </p>
 
+              {/* Profile Quick Actions */}
+              <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={onOpenProfileModal}
+                  className="px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-600/80 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  title="Edit your personal age, height, weight, and targets"
+                >
+                  <User className="w-3 h-3 text-emerald-400" />
+                  <span>Edit Profile</span>
+                </button>
+
+                {onOpenOnboarding && (
+                  <button
+                    type="button"
+                    onClick={onOpenOnboarding}
+                    className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    title="Create a new profile for yourself or another person"
+                  >
+                    <UserPlus className="w-3 h-3 text-emerald-300" />
+                    <span>+ Make My Profile</span>
+                  </button>
+                )}
+              </div>
+
               {/* Daily Wellness Tip for User */}
               <div className="pt-2 flex items-center gap-2 flex-wrap text-xs text-stone-300">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/70 text-emerald-300 border border-emerald-800/60 rounded-lg font-medium">
@@ -312,6 +339,41 @@ export const DailyDashboard: React.FC<DailyDashboardProps> = ({
             </button>
           </div>
         </div>
+
+        {/* First Launch / New Member Induction Banner */}
+        {(userProfile.id === 'client-user' || userProfile.name === 'New Member') && onOpenOnboarding && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-emerald-950 to-stone-900 border-2 border-emerald-500/70 rounded-2xl shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-white">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 shrink-0 mt-0.5">
+                <UserPlus className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-emerald-300 uppercase tracking-wider">
+                    Welcome New Tester
+                  </span>
+                  <span className="px-2 py-0.5 bg-emerald-500/30 text-emerald-200 text-[10px] rounded-full font-bold">
+                    Profile Setup
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-white mt-0.5 font-display">
+                  Make Your Personalized Health Profile
+                </h3>
+                <p className="text-xs text-stone-300 mt-0.5 leading-relaxed">
+                  Enter your name, age, height &amp; weight to calculate your personalized Indian calories and protein target.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenOnboarding}
+              className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            >
+              <Sparkles className="w-4 h-4 text-stone-950" />
+              <span>Make My Profile</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Primary Calorie Status Board */}
@@ -1551,18 +1613,6 @@ export const DailyDashboard: React.FC<DailyDashboardProps> = ({
           >
             Cooking Variance
           </button>
-          {onOpenAdminLogin && (
-            <>
-              <span>·</span>
-              <button
-                onClick={onOpenAdminLogin}
-                className="text-stone-600 hover:text-stone-800 transition-colors"
-                title="Clinical Staff &amp; Dietician Access"
-              >
-                Dietician Portal Login 🔒
-              </button>
-            </>
-          )}
         </div>
       </footer>
     </div>

@@ -47,7 +47,7 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
   const [likesRice, setLikesRice] = useState(true);
   const [dislikesInput, setDislikesInput] = useState('');
   const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
-  const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
+  const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(true);
 
   if (!isOpen) return null;
 
@@ -81,8 +81,7 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
   const handleFinish = (e: React.FormEvent) => {
     e.preventDefault();
     if (!acceptedDisclaimer) {
-      alert('Please acknowledge the Health & Medical Disclaimer to proceed.');
-      return;
+      setAcceptedDisclaimer(true);
     }
 
     const dislikes = dislikesInput

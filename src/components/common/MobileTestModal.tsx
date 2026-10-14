@@ -11,7 +11,10 @@ import {
   Share2,
   Users,
   MessageCircle,
+  Download,
+  FolderArchive,
 } from 'lucide-react';
+import { downloadSourceZip, downloadDistZip } from '../../utils/downloadZip';
 
 interface MobileTestModalProps {
   isOpen: boolean;
@@ -106,6 +109,40 @@ export const MobileTestModal: React.FC<MobileTestModalProps> = ({ isOpen, onClos
               >
                 {copiedActive ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedActive ? 'Link Copied! ✓' : 'Copy Link'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Direct ZIP Download Section for Vercel / Netlify */}
+          <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                <FolderArchive className="w-4 h-4 text-amber-700" />
+                <span>Download Project Code (.ZIP)</span>
+              </span>
+              <span className="text-[10px] bg-amber-200/80 text-amber-900 font-bold px-2 py-0.5 rounded-full">
+                Latest Updated
+              </span>
+            </div>
+            <p className="text-xs text-stone-700 leading-relaxed">
+              Download the complete codebase package to deploy to Vercel, upload to GitHub, or store a local backup:
+            </p>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => downloadSourceZip()}
+                className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download Source Code (.ZIP)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadDistZip()}
+                className="px-3.5 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5 text-amber-400" />
+                <span>Download Pre-Built Dist (.ZIP)</span>
               </button>
             </div>
           </div>

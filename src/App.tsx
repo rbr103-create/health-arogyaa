@@ -22,6 +22,8 @@ import {
   getActiveUser,
   setActiveUserId,
   updateUserProfile,
+  deleteUserProfile,
+  resetToBrandNewTester,
   getDailyLog,
   saveDailyLog,
   logMealItem,
@@ -205,6 +207,13 @@ export default function App() {
     if (currentActive) {
       setDailyLog(getDailyLog(selectedDate));
       setWeightRecords(getWeightRecords(currentActive.id));
+    }
+
+    // Trigger onboarding for any brand new client download on first launch
+    const hasCompletedOnboarding = localStorage.getItem('healtharogyaa_onboarding_completed_v1') === 'true';
+    const isDefaultNewClient = currentActive.id === 'client-user' || currentActive.name === 'New Member';
+    if ((!hasCompletedOnboarding || isDefaultNewClient) && !checkIsDirectAdmin()) {
+      setIsOnboardingModalOpen(true);
     }
   }, []);
 
@@ -482,12 +491,35 @@ export default function App() {
   };
 
   const handleCompleteOnboarding = (newProfile: UserProfile) => {
+    try {
+      localStorage.setItem('healtharogyaa_onboarding_completed_v1', 'true');
+    } catch {}
     updateUserProfile(newProfile);
     setActiveUserId(newProfile.id);
     setActiveUser(newProfile);
     setAllUsers(getAllUsers());
     setDailyLog(getDailyLog(selectedDate));
     setWeightRecords(getWeightRecords(newProfile.id));
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    deleteUserProfile(userId);
+    const updatedUsers = getAllUsers();
+    setAllUsers(updatedUsers);
+    const nextActive = getActiveUser();
+    setActiveUser(nextActive);
+    setDailyLog(getDailyLog(selectedDate));
+    setWeightRecords(getWeightRecords(nextActive.id));
+  };
+
+  const handleResetToNewTester = () => {
+    resetToBrandNewTester();
+    const updatedUsers = getAllUsers();
+    const nextActive = getActiveUser();
+    setAllUsers(updatedUsers);
+    setActiveUser(nextActive);
+    setIsProfileModalOpen(false);
+    setIsOnboardingModalOpen(true);
   };
 
   const handleOpenUserCalendarForAdmin = (targetUser: UserProfile) => {
@@ -840,7 +872,6 @@ export default function App() {
             onOpenMethodologyModal={() => setIsMethodologyModalOpen(true)}
             onOpenNutritionAccuracyModal={() => setIsNutritionAccuracyModalOpen(true)}
             onOpenDisclaimerModal={() => setIsDisclaimerModalOpen(true)}
-            onOpenAdminLogin={() => handleRequestAdminToggle(true)}
             onOpenSeasonalDropsModal={() => setIsSeasonalDropsModalOpen(true)}
             onSubmitMonthlyDieticianReview={handleSubmitMonthlyDieticianReview}
             expertReviews={expertReviews}
@@ -861,6 +892,8 @@ export default function App() {
         onOpenWeightModal={() => setIsWeightModalOpen(true)}
         onOpenExpertModal={() => setIsExpertModalOpen(true)}
         onOpenCalendarModal={handleOpenUserCalendarForSelf}
+        onOpenProfileModal={() => setIsProfileModalOpen(true)}
+        activeUserName={activeUser.name}
       />
 
       {/* Floating AI Nutrition Assistant */}
@@ -918,8 +951,9 @@ export default function App() {
           allUsers={allUsers}
           onSaveProfile={handleSaveProfile}
           onSwitchUser={handleSwitchUser}
-          onOpenAdminLogin={() => handleRequestAdminToggle(true)}
           onOpenOnboarding={() => setIsOnboardingModalOpen(true)}
+          onDeleteProfile={handleDeleteUser}
+          onResetTester={handleResetToNewTester}
         />
       )}
 
@@ -960,10 +994,6 @@ export default function App() {
           upiSettings={upiSettings}
           onPaymentSubmitted={handlePaymentSubmitted}
           existingPayment={subscriptions.find(s => s.userId === activeUser.id)}
-          onOpenAdminSettings={() => {
-            setIsPremiumModalOpen(false);
-            handleRequestAdminToggle(true);
-          }}
         />
       )}
 
@@ -971,7 +1001,12 @@ export default function App() {
       {isOnboardingModalOpen && (
         <UserOnboardingModal
           isOpen={isOnboardingModalOpen}
-          onClose={() => setIsOnboardingModalOpen(false)}
+          onClose={() => {
+            try {
+              localStorage.setItem('healtharogyaa_onboarding_completed_v1', 'true');
+            } catch {}
+            setIsOnboardingModalOpen(false);
+          }}
           onCompleteOnboarding={handleCompleteOnboarding}
         />
       )}

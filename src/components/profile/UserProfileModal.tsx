@@ -13,6 +13,9 @@ import {
   Sliders,
   Sparkles,
   Lock,
+  UserPlus,
+  Trash2,
+  RotateCcw,
 } from 'lucide-react';
 
 interface UserProfileModalProps {
@@ -24,6 +27,8 @@ interface UserProfileModalProps {
   onSwitchUser: (userId: string) => void;
   onOpenAdminLogin?: () => void;
   onOpenOnboarding?: () => void;
+  onDeleteProfile?: (userId: string) => void;
+  onResetTester?: () => void;
 }
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
@@ -35,6 +40,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onSwitchUser,
   onOpenAdminLogin,
   onOpenOnboarding,
+  onDeleteProfile,
+  onResetTester,
 }) => {
   const [formData, setFormData] = useState<UserProfile>(userProfile);
   const [dislikeInput, setDislikeInput] = useState(userProfile.dislikes.join(', '));
@@ -122,46 +129,77 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           <div className="bg-stone-50 p-3.5 rounded-xl border border-stone-200/80">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-stone-800">
-                Switch Active User Profile:
+                Active Profiles ({allUsers.length}):
               </span>
-              {onOpenOnboarding && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onOpenOnboarding();
-                  }}
-                  className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1 shadow-2xs"
-                >
-                  <User className="w-3 h-3" />
-                  <span>+ Sign Up / New Profile</span>
-                </button>
-              )}
+              <div className="flex items-center gap-1.5">
+                {onOpenOnboarding && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenOnboarding();
+                    }}
+                    className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                  >
+                    <UserPlus className="w-3 h-3 text-emerald-300" />
+                    <span>+ Make New Profile</span>
+                  </button>
+                )}
+                {onResetTester && (
+                  <button
+                    type="button"
+                    onClick={() => onResetTester()}
+                    className="px-2 py-1 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg text-[10px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                    title="Reset to fresh member to test first-launch onboarding"
+                  >
+                    <RotateCcw className="w-2.5 h-2.5 text-stone-600" />
+                    <span>Test Fresh Induction</span>
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
               {allUsers.map(p => (
-                <button
+                <div
                   key={p.id}
-                  onClick={() => onSwitchUser(p.id)}
-                  className={`p-2.5 rounded-lg border text-left text-xs transition-all ${
+                  className={`p-2.5 rounded-lg border text-left text-xs transition-all relative ${
                     userProfile.id === p.id
                       ? 'border-emerald-700 bg-emerald-50/70 font-semibold text-emerald-950 shadow-2xs'
                       : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'
                   }`}
                 >
-                  <div className="font-bold truncate flex items-center justify-between">
-                    <span>{p.name}</span>
-                    {userProfile.id === p.id && (
-                      <span className="text-[10px] text-emerald-700 font-extrabold">Active</span>
-                    )}
-                  </div>
-                  <div className="text-[11px] text-stone-500 mt-0.5">
-                    {p.age}y · {p.weightKg}kg · {p.dietPreference}
-                  </div>
-                  <div className="text-[10px] text-emerald-700 mt-0.5">
-                    Target: {p.dailyCalories} kcal
-                  </div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => onSwitchUser(p.id)}
+                    className="w-full text-left cursor-pointer"
+                  >
+                    <div className="font-bold truncate flex items-center justify-between pr-4">
+                      <span>{p.name}</span>
+                      {userProfile.id === p.id && (
+                        <span className="text-[10px] text-emerald-700 font-extrabold">Active</span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-stone-500 mt-0.5">
+                      {p.age}y · {p.weightKg}kg · {p.dietPreference}
+                    </div>
+                    <div className="text-[10px] text-emerald-700 mt-0.5 font-medium">
+                      Target: {p.dailyCalories} kcal
+                    </div>
+                  </button>
+                  {allUsers.length > 1 && onDeleteProfile && userProfile.id !== p.id && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteProfile(p.id);
+                      }}
+                      className="absolute top-2 right-2 text-stone-400 hover:text-rose-600 p-0.5 rounded cursor-pointer transition-colors"
+                      title={`Delete profile ${p.name}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -454,30 +492,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           </div>
 
-          {/* Clinical Staff Access */}
-          {onOpenAdminLogin && (
-            <div className="p-3 bg-stone-900 text-stone-200 border border-stone-800 rounded-xl flex items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="font-bold text-white block">Dietician Admin &amp; UPI Setup</span>
-                  <span className="text-[11px] text-stone-400">Clinic database &amp; payment QR (Ravi Sushil Bhargav · PIN: 1030)</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onOpenAdminLogin();
-                }}
-                className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs rounded-lg transition-colors cursor-pointer shrink-0"
-              >
-                Open Admin &rarr;
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Footer */}

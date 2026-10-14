@@ -11,6 +11,7 @@ import {
   FileText,
   ArrowLeftRight,
   CreditCard,
+  User,
 } from 'lucide-react';
 
 interface BottomNavProps {
@@ -24,6 +25,8 @@ interface BottomNavProps {
   onOpenWeightModal: () => void;
   onOpenExpertModal: () => void;
   onOpenCalendarModal?: () => void;
+  onOpenProfileModal?: () => void;
+  activeUserName?: string;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
@@ -37,6 +40,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onOpenWeightModal,
   onOpenExpertModal,
   onOpenCalendarModal,
+  onOpenProfileModal,
+  activeUserName,
 }) => {
   return (
     <div
@@ -173,14 +178,18 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             <span className="text-[10px] mt-1 tracking-tight">Expert</span>
           </button>
 
-          {/* 15-Day Calendar Plan */}
+          {/* User Profile */}
           <button
-            onClick={onOpenCalendarModal}
-            className="flex flex-col items-center justify-center min-h-[48px] py-1 text-stone-400 hover:text-stone-200 transition-colors"
-            title="15-Day Calorie & Habit Calendar"
+            onClick={onOpenProfileModal}
+            className="flex flex-col items-center justify-center min-h-[48px] py-1 text-stone-400 hover:text-emerald-300 transition-colors"
+            title="My Health Profile, Edit Goals & Switch Users"
           >
-            <Calendar className="w-5 h-5 text-emerald-400" />
-            <span className="text-[10px] mt-1 tracking-tight font-medium">15-Day Plan</span>
+            <div className="w-5 h-5 rounded-full bg-emerald-600/90 text-white flex items-center justify-center font-bold text-[10px] shrink-0 border border-emerald-400/40">
+              {activeUserName ? activeUserName.charAt(0).toUpperCase() : <User className="w-3 h-3" />}
+            </div>
+            <span className="text-[10px] mt-1 tracking-tight truncate max-w-[56px] text-stone-300 font-medium">
+              Profile
+            </span>
           </button>
         </div>
       )}

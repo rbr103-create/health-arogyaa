@@ -11,7 +11,7 @@ export const HealthArogyaaLogo: React.FC<HealthArogyaaLogoProps> = ({
   className = 'w-10 h-10',
   size,
   showCircleRing = true,
-  background = 'transparent',
+  background = '#ffffff',
 }) => {
   const style = size ? { width: size, height: size } : undefined;
 
@@ -25,8 +25,8 @@ export const HealthArogyaaLogo: React.FC<HealthArogyaaLogoProps> = ({
       role="img"
       aria-label="HealthArogyaa Logo"
     >
-      {/* Optional Circular Base */}
-      {background !== 'transparent' && (
+      {/* White or Custom Circular Base */}
+      {background !== 'none' && background !== 'transparent' && (
         <circle cx="100" cy="100" r="92" fill={background} />
       )}
 
