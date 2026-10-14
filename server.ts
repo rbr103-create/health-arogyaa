@@ -27,12 +27,33 @@ app.use((req, res, next) => {
 });
 
 // Explicit route to download complete source code zip
-app.get(['/download-source', '/health-arogyaa-source.zip', '/api/download-source'], (req, res) => {
+app.get(['/download-source', '/health-arogyaa-source.zip', '/project.zip', '/api/download-source'], (req, res) => {
   const zipPath = path.resolve(__dirname, 'public', 'health-arogyaa-source.zip');
-  res.download(zipPath, 'health-arogyaa-source.zip', (err) => {
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', 'attachment; filename="health-arogyaa-source.zip"');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.sendFile(zipPath, (err) => {
     if (err) {
       console.error('Error downloading source:', err);
-      res.status(500).send('Unable to download source archive');
+      if (!res.headersSent) {
+        res.status(500).send('Unable to download source archive');
+      }
+    }
+  });
+});
+
+// Explicit route to download pre-built production dist zip
+app.get(['/download-dist', '/health-arogyaa-dist.zip', '/api/download-dist'], (req, res) => {
+  const zipPath = path.resolve(__dirname, 'public', 'health-arogyaa-dist.zip');
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', 'attachment; filename="health-arogyaa-dist.zip"');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.sendFile(zipPath, (err) => {
+    if (err) {
+      console.error('Error downloading dist:', err);
+      if (!res.headersSent) {
+        res.status(500).send('Unable to download dist archive');
+      }
     }
   });
 });
