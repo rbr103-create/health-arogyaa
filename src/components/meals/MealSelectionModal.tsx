@@ -836,20 +836,20 @@ export const MealSelectionModal: React.FC<MealSelectionModalProps> = ({
                   }`}
                 >
                   <div className="p-4 sm:p-5">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start justify-between gap-2.5">
                       {/* Left: Dish visual icon and details */}
-                      <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                      <div className="flex items-start gap-2.5 flex-1 min-w-0">
                         {/* Food Avatar */}
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-50 to-emerald-50 border border-stone-200/60 flex items-center justify-center text-2xl shadow-2xs shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-50 to-emerald-50 border border-stone-200/60 flex items-center justify-center text-xl shadow-2xs shrink-0 mt-0.5">
                           {emoji}
                         </div>
 
-                        <div className="flex-1 min-w-0 space-y-1">
-                          {/* Dish Title & Veg/Non-Veg icon */}
-                          <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          {/* Dish Title & Veg/Non-Veg icon - inline horizontal */}
+                          <div className="flex items-baseline gap-1.5 flex-wrap">
                             {/* Indian Standard Veg/Non-Veg symbol */}
                             <span
-                              className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center shrink-0 ${
+                              className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center shrink-0 self-center ${
                                 food.vegetarian ? 'border-emerald-600' : 'border-rose-600'
                               }`}
                               title={food.vegetarian ? 'Vegetarian' : 'Non-Vegetarian'}
@@ -861,51 +861,48 @@ export const MealSelectionModal: React.FC<MealSelectionModalProps> = ({
                               />
                             </span>
 
-                            <h3 className="font-bold text-stone-900 text-sm sm:text-base leading-snug">
+                            <h3 className="font-bold text-stone-900 text-xs sm:text-sm leading-snug inline">
                               {food.name}
+                              {food.hindiName && (
+                                <span className="text-[11px] font-normal text-stone-500 ml-1.5">
+                                  ({food.hindiName})
+                                </span>
+                              )}
                             </h3>
+                          </div>
 
-                            {food.hindiName && (
-                              <span className="text-xs text-stone-400 font-medium">
-                                ({food.hindiName})
+                          {/* Serving specification & Recommendation */}
+                          <div className="text-[11px] text-stone-500 mt-1 flex items-center gap-2 flex-wrap">
+                            <span>Serving: <strong className="text-stone-700">{food.serving}</strong></span>
+                            {reason && !showAllOptions && (
+                              <span className="text-[10px] text-emerald-800 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                                ✓ {reason}
                               </span>
                             )}
                           </div>
-
-                          {/* Serving specification */}
-                          <div className="text-xs text-stone-600">
-                            Serving: <strong className="text-stone-800">{food.serving}</strong>
-                          </div>
-
-                          {/* Recommendation reason */}
-                          {reason && !showAllOptions && (
-                            <p className="text-[11px] text-emerald-800 font-medium bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
-                              ✓ {reason}
-                            </p>
-                          )}
                         </div>
                       </div>
 
                       {/* Right: Calories & Select Button */}
-                      <div className="flex flex-col items-end gap-1.5 shrink-0 pl-1">
-                        <div className="text-right">
-                          <span className="text-base sm:text-xl font-extrabold text-stone-900 tabular-nums font-display whitespace-nowrap">
+                      <div className="flex flex-col items-end gap-1 shrink-0 pl-1">
+                        <div className="flex items-baseline gap-0.5">
+                          <span className="text-sm sm:text-base font-extrabold text-stone-900 tabular-nums">
                             {food.calories}
                           </span>
-                          <span className="text-[10px] text-stone-500 block font-normal uppercase leading-tight">
+                          <span className="text-[9px] text-stone-500 uppercase font-semibold">
                             kcal
                           </span>
                         </div>
 
                         <button
                           onClick={() => setSelectedFood(isSelected ? null : food)}
-                          className={`px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0 ${
+                          className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
                             isSelected
                               ? 'bg-emerald-700 text-white shadow-xs'
                               : 'bg-stone-900 text-white hover:bg-stone-800'
                           }`}
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-3 h-3" />
                           <span>{isSelected ? 'Selected' : 'Select'}</span>
                         </button>
                       </div>

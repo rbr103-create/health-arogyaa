@@ -102,49 +102,11 @@ export const PremiumPlanModal: React.FC<PremiumPlanModalProps> = ({
 }) => {
   const [modalStep, setModalStep] = useState<'benefits' | 'pay_upi' | 'success'>('benefits');
   const [selectedTier, setSelectedTier] = useState<PlanTier>('3_months');
+  const [userUtr, setUserUtr] = useState('');
   const [copiedVpa, setCopiedVpa] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [paymentDetected, setPaymentDetected] = useState(false);
-  const hasTriggeredConfirm = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedBundle = PLAN_BUNDLES.find(p => p.id === selectedTier) || PLAN_BUNDLES[1];
-
-  // Auto-detection when returning from UPI app (GPay / PhonePe / Paytm)
-  useEffect(() => {
-    if (!isOpen || modalStep !== 'pay_upi') return;
-
-    setIsListening(true);
-    hasTriggeredConfirm.current = false;
-
-    // Detect when user returns to tab after paying in UPI app
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !hasTriggeredConfirm.current) {
-        handleAutoConfirmPayment();
-      }
-    };
-
-    const handleFocus = () => {
-      if (!hasTriggeredConfirm.current) {
-        handleAutoConfirmPayment();
-      }
-    };
-
-    // Auto-detect timer: in case user scans desktop QR with their phone, auto-detect after 9 seconds
-    const autoPollTimer = setTimeout(() => {
-      if (!hasTriggeredConfirm.current && modalStep === 'pay_upi') {
-        handleAutoConfirmPayment();
-      }
-    }, 9000);
-
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      clearTimeout(autoPollTimer);
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [isOpen, modalStep]);
 
   if (!isOpen) return null;
 
@@ -200,12 +162,10 @@ export const PremiumPlanModal: React.FC<PremiumPlanModalProps> = ({
     setTimeout(() => setCopiedVpa(false), 2000);
   };
 
-  const handleAutoConfirmPayment = () => {
-    if (hasTriggeredConfirm.current) return;
-    hasTriggeredConfirm.current = true;
-    setPaymentDetected(true);
+  const handleConfirmPayment = () => {
+    setIsSubmitting(true);
 
-    const generatedRefId = `UPI-${Math.floor(100000000000 + Math.random() * 900000000000)}`;
+    const generatedRefId = userUtr.trim() || `UPI-${Math.floor(100000000000 + Math.random() * 900000000000)}`;
 
     if (onPaymentSubmitted) {
       onPaymentSubmitted({
@@ -219,13 +179,13 @@ export const PremiumPlanModal: React.FC<PremiumPlanModalProps> = ({
       });
     }
 
-    // Immediately activate premium for selected duration
+    // Activate premium for selected duration
     onUpgradeToPremium(selectedBundle.months);
 
     setTimeout(() => {
+      setIsSubmitting(false);
       setModalStep('success');
-      setPaymentDetected(false);
-    }, 1200);
+    }, 500);
   };
 
   return (
@@ -443,32 +403,29 @@ export const PremiumPlanModal: React.FC<PremiumPlanModalProps> = ({
           </div>
         )}
 
-        {/* STEP 2: SEAMLESS AUTOMATIC UPI QR CHECKOUT */}
+        {/* STEP 2: CLEAR UPI QR CODE & PAYMENT VERIFICATION */}
         {modalStep === 'pay_upi' && (
           <div className="flex-1 overflow-y-auto flex flex-col">
-            <div className="p-5 space-y-4 flex-1">
+            <div className="p-4 sm:p-5 space-y-4 flex-1">
               {/* Scan Box with QR */}
-              <div className="bg-stone-50 rounded-3xl border border-stone-200 p-5 flex flex-col items-center text-center space-y-3.5">
+              <div className="bg-stone-50 rounded-3xl border border-stone-200 p-4 sm:p-5 flex flex-col items-center text-center space-y-3.5">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 font-bold text-xs border border-emerald-200">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
                   <span>Scan to Pay Exactly ₹{selectedBundle.price}/- ({selectedBundle.title})</span>
                 </div>
 
                 {/* QR Code Container */}
-                <div className="bg-white p-3 rounded-2xl border-2 border-stone-800/20 shadow-md relative">
+                <div className="bg-white p-3 rounded-2xl border-2 border-stone-800/20 shadow-md">
                   <img
                     src={qrImageUrl}
                     alt={`UPI QR Code for HealthArogyaa ${selectedBundle.title}`}
                     className="w-48 h-48 sm:w-56 sm:h-56 object-contain"
                   />
-                  {paymentDetected && (
-                    <div className="absolute inset-0 bg-emerald-600/90 backdrop-blur-xs rounded-2xl flex flex-col items-center justify-center text-white p-4 space-y-2 animate-fade-in">
-                      <CheckCircle2 className="w-12 h-12 text-white animate-scale-in" />
-                      <span className="font-bold text-sm">Payment Received!</span>
-                      <span className="text-xs opacity-90">Activating {selectedBundle.months} month(s) plan...</span>
-                    </div>
-                  )}
                 </div>
+
+                <p className="text-xs text-stone-600 max-w-sm">
+                  Scan this QR code with any UPI app on your phone, or copy the UPI ID below:
+                </p>
 
                 {/* Supported Apps Badges */}
                 <div className="flex items-center justify-center gap-2 flex-wrap text-[11px] font-semibold text-stone-600">
@@ -502,38 +459,27 @@ export const PremiumPlanModal: React.FC<PremiumPlanModalProps> = ({
                 {/* Direct 1-tap mobile link (opens GPay/PhonePe directly on mobile) */}
                 <a
                   href={upiUri}
-                  onClick={() => {
-                    setTimeout(() => {
-                      handleAutoConfirmPayment();
-                    }, 4000);
-                  }}
                   className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-black text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>⚡ Tap to Pay ₹{selectedBundle.price} in UPI App (Google Pay / PhonePe)</span>
                 </a>
               </div>
 
-              {/* Automatic Status Listener Card */}
-              <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-emerald-950">
-                <div className="flex items-center gap-2.5 text-xs">
-                  <Loader2 className="w-4 h-4 text-emerald-600 animate-spin shrink-0" />
-                  <div>
-                    <span className="font-bold block text-emerald-900">
-                      Listening for incoming ₹{selectedBundle.price} payment...
-                    </span>
-                    <span className="text-[11px] text-emerald-700 block">
-                      Once paid in your UPI app, this screen confirms and unlocks {selectedBundle.months} month(s) of access immediately.
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleAutoConfirmPayment}
-                  className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shrink-0 transition-colors shadow-2xs cursor-pointer"
-                >
-                  I Have Paid
-                </button>
+              {/* UTR / Reference ID Field */}
+              <div className="bg-white border border-stone-200 rounded-2xl p-3.5 space-y-1.5 text-left">
+                <label className="text-xs font-bold text-stone-800 block">
+                  UPI Transaction ID / UTR Number (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 12-digit UTR from GPay / PhonePe (optional)"
+                  value={userUtr}
+                  onChange={e => setUserUtr(e.target.value)}
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs sm:text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <span className="text-[11px] text-stone-500 block">
+                  After completing the payment in your UPI app, click the confirm button below to activate your account.
+                </span>
               </div>
             </div>
 
@@ -549,11 +495,21 @@ export const PremiumPlanModal: React.FC<PremiumPlanModalProps> = ({
 
               <button
                 type="button"
-                onClick={handleAutoConfirmPayment}
-                className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white rounded-xl text-xs sm:text-sm font-black shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                disabled={isSubmitting}
+                onClick={handleConfirmPayment}
+                className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white rounded-xl text-xs sm:text-sm font-black shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                <Check className="w-4 h-4" />
-                <span>Confirm Payment (₹{selectedBundle.price})</span>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Activating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>I Have Paid — Confirm Payment (₹{selectedBundle.price})</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

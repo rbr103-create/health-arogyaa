@@ -32,11 +32,11 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
   // Form State with user's requested induction fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [age, setAge] = useState<number>(35);
+  const [ageInput, setAgeInput] = useState('35');
   const [sex, setSex] = useState<'Male' | 'Female'>('Male');
-  const [heightCm, setHeightCm] = useState<number>(170);
-  const [weightKg, setWeightKg] = useState<number>(80);
-  const [targetWeightKg, setTargetWeightKg] = useState<number>(72);
+  const [heightCmInput, setHeightCmInput] = useState('170');
+  const [weightKgInput, setWeightKgInput] = useState('80');
+  const [targetWeightKgInput, setTargetWeightKgInput] = useState('72');
   const [activityLevel, setActivityLevel] = useState<UserProfile['activityLevel']>('sedentary');
   const [goal, setGoal] = useState<UserProfile['goal']>('weight_loss');
 
@@ -51,13 +51,18 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
 
   if (!isOpen) return null;
 
-  const heightInfo = formatHeight(heightCm);
-  const bmiInfo = calculateBMI(weightKg, heightCm);
+  const ageNum = parseInt(ageInput, 10) || 30;
+  const heightCmNum = parseInt(heightCmInput, 10) || 165;
+  const weightKgNum = parseFloat(weightKgInput) || 70;
+  const targetWeightKgNum = parseFloat(targetWeightKgInput) || 65;
+
+  const heightInfo = formatHeight(heightCmNum);
+  const bmiInfo = calculateBMI(weightKgNum, heightCmNum);
   const calorieCalcs = calculateDailyCalorieTarget(
     sex,
-    weightKg,
-    heightCm,
-    age,
+    weightKgNum,
+    heightCmNum,
+    ageNum,
     activityLevel,
     goal
   );
@@ -93,12 +98,12 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
       id: `user-${Date.now()}`,
       name: name.trim() || 'HealthArogyaa Member',
       email: email.trim() || undefined,
-      age: Number(age) || 30,
+      age: ageNum,
       sex,
-      heightCm: Number(heightCm) || 165,
-      weightKg: Number(weightKg) || 70,
-      startingWeightKg: Number(weightKg) || 70,
-      targetWeightKg: Number(targetWeightKg) || 65,
+      heightCm: heightCmNum,
+      weightKg: weightKgNum,
+      startingWeightKg: weightKgNum,
+      targetWeightKg: targetWeightKgNum,
       activityLevel,
       goal,
       dietPreference,
@@ -201,11 +206,15 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
                     Age (Years)
                   </label>
                   <input
-                    type="number"
-                    min="15"
-                    max="100"
-                    value={age}
-                    onChange={e => setAge(parseInt(e.target.value) || 30)}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="e.g. 35"
+                    value={ageInput}
+                    onChange={e => setAgeInput(e.target.value.replace(/[^0-9]/g, ''))}
+                    onBlur={() => {
+                      if (!ageInput || Number(ageInput) < 10) setAgeInput('30');
+                    }}
                     className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs sm:text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -215,11 +224,15 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
                     Height (cm): <span className="text-emerald-700 font-bold">{heightInfo.feetInches}</span>
                   </label>
                   <input
-                    type="number"
-                    min="100"
-                    max="230"
-                    value={heightCm}
-                    onChange={e => setHeightCm(parseInt(e.target.value) || 165)}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="e.g. 170"
+                    value={heightCmInput}
+                    onChange={e => setHeightCmInput(e.target.value.replace(/[^0-9]/g, ''))}
+                    onBlur={() => {
+                      if (!heightCmInput || Number(heightCmInput) < 100) setHeightCmInput('165');
+                    }}
                     className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs sm:text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -229,12 +242,14 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
                     Current Weight (kg)
                   </label>
                   <input
-                    type="number"
-                    step="0.5"
-                    min="35"
-                    max="220"
-                    value={weightKg}
-                    onChange={e => setWeightKg(parseFloat(e.target.value) || 70)}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="e.g. 80"
+                    value={weightKgInput}
+                    onChange={e => setWeightKgInput(e.target.value.replace(/[^0-9.]/g, ''))}
+                    onBlur={() => {
+                      if (!weightKgInput || Number(weightKgInput) < 30) setWeightKgInput('70');
+                    }}
                     className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs sm:text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -244,12 +259,14 @@ export const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({
                     Target Goal Weight (kg)
                   </label>
                   <input
-                    type="number"
-                    step="0.5"
-                    min="35"
-                    max="220"
-                    value={targetWeightKg}
-                    onChange={e => setTargetWeightKg(parseFloat(e.target.value) || 65)}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="e.g. 72"
+                    value={targetWeightKgInput}
+                    onChange={e => setTargetWeightKgInput(e.target.value.replace(/[^0-9.]/g, ''))}
+                    onBlur={() => {
+                      if (!targetWeightKgInput || Number(targetWeightKgInput) < 30) setTargetWeightKgInput('65');
+                    }}
                     className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs sm:text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>

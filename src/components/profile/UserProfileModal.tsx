@@ -44,11 +44,19 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onResetTester,
 }) => {
   const [formData, setFormData] = useState<UserProfile>(userProfile);
+  const [rawAge, setRawAge] = useState<string>(String(userProfile.age));
+  const [rawHeight, setRawHeight] = useState<string>(String(userProfile.heightCm));
+  const [rawWeight, setRawWeight] = useState<string>(String(userProfile.weightKg));
+  const [rawTargetWeight, setRawTargetWeight] = useState<string>(String(userProfile.targetWeightKg));
   const [dislikeInput, setDislikeInput] = useState(userProfile.dislikes.join(', '));
   const [allergiesInput, setAllergiesInput] = useState((userProfile.allergies || []).join(', '));
 
   useEffect(() => {
     setFormData(userProfile);
+    setRawAge(String(userProfile.age));
+    setRawHeight(String(userProfile.heightCm));
+    setRawWeight(String(userProfile.weightKg));
+    setRawTargetWeight(String(userProfile.targetWeightKg));
     setDislikeInput(userProfile.dislikes.join(', '));
     setAllergiesInput((userProfile.allergies || []).join(', '));
   }, [userProfile]);
@@ -56,12 +64,17 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   if (!isOpen) return null;
 
   // Recalculate metrics on input changes
-  const bmiInfo = calculateBMI(formData.weightKg, formData.heightCm);
+  const parsedWeight = parseFloat(rawWeight) || formData.weightKg || 70;
+  const parsedHeight = parseInt(rawHeight, 10) || formData.heightCm || 165;
+  const parsedAge = parseInt(rawAge, 10) || formData.age || 30;
+  const parsedTargetWeight = parseFloat(rawTargetWeight) || formData.targetWeightKg || 65;
+
+  const bmiInfo = calculateBMI(parsedWeight, parsedHeight);
   const calorieCalcs = calculateDailyCalorieTarget(
     formData.sex,
-    formData.weightKg,
-    formData.heightCm,
-    formData.age,
+    parsedWeight,
+    parsedHeight,
+    parsedAge,
     formData.activityLevel,
     formData.goal
   );
@@ -79,6 +92,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
     const updated: UserProfile = {
       ...formData,
+      age: parsedAge,
+      heightCm: parsedHeight,
+      weightKg: parsedWeight,
+      targetWeightKg: parsedTargetWeight,
       dislikes: dislikesArr,
       allergies: allergiesArr,
       dailyCalories: calorieCalcs.dailyCalories,
@@ -282,9 +299,15 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 Age (years)
               </label>
               <input
-                type="number"
-                value={formData.age}
-                onChange={e => setFormData({ ...formData, age: parseInt(e.target.value) || 30 })}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="e.g. 35"
+                value={rawAge}
+                onChange={e => setRawAge(e.target.value.replace(/[^0-9]/g, ''))}
+                onBlur={() => {
+                  if (!rawAge || Number(rawAge) < 10) setRawAge('30');
+                }}
                 className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs sm:text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -294,9 +317,15 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 Height (cm)
               </label>
               <input
-                type="number"
-                value={formData.heightCm}
-                onChange={e => setFormData({ ...formData, heightCm: parseInt(e.target.value) || 165 })}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="e.g. 170"
+                value={rawHeight}
+                onChange={e => setRawHeight(e.target.value.replace(/[^0-9]/g, ''))}
+                onBlur={() => {
+                  if (!rawHeight || Number(rawHeight) < 100) setRawHeight('165');
+                }}
                 className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs sm:text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -306,10 +335,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 Current Weight (kg)
               </label>
               <input
-                type="number"
-                step="0.5"
-                value={formData.weightKg}
-                onChange={e => setFormData({ ...formData, weightKg: parseFloat(e.target.value) || 70 })}
+                type="text"
+                inputMode="decimal"
+                placeholder="e.g. 70"
+                value={rawWeight}
+                onChange={e => setRawWeight(e.target.value.replace(/[^0-9.]/g, ''))}
+                onBlur={() => {
+                  if (!rawWeight || Number(rawWeight) < 30) setRawWeight('70');
+                }}
                 className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs sm:text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -319,10 +352,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 Target Weight (kg)
               </label>
               <input
-                type="number"
-                step="0.5"
-                value={formData.targetWeightKg}
-                onChange={e => setFormData({ ...formData, targetWeightKg: parseFloat(e.target.value) || 65 })}
+                type="text"
+                inputMode="decimal"
+                placeholder="e.g. 65"
+                value={rawTargetWeight}
+                onChange={e => setRawTargetWeight(e.target.value.replace(/[^0-9.]/g, ''))}
+                onBlur={() => {
+                  if (!rawTargetWeight || Number(rawTargetWeight) < 30) setRawTargetWeight('65');
+                }}
                 className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs sm:text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
